@@ -1,0 +1,61 @@
+FROM arm64v8/ros:noetic-ros-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install basic tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg2 \
+    lsb-release \
+    software-properties-common \
+    python3-pip \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install rosdep and colcon via pip
+RUN pip3 install -U \
+    rosdep \
+    colcon-common-extensions \
+    lark
+
+# Setup locale
+RUN apt-get update && apt-get install -y locales \
+    && locale-gen en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/*
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+# Add ROS2 Foxy repository (available for Ubuntu 20.04 Focal)
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
+# Install ROS2 Foxy packages and CycloneDDS
+RUN apt-get update && apt-get install -y \
+    ros-foxy-ros-core \
+    ros-foxy-ament-cmake \
+    ros-foxy-std-msgs \
+    ros-foxy-common-interfaces \
+    ros-foxy-rmw-cyclonedds-cpp \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set CycloneDDS as default RMW
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+# Clone and build ros1_bridge for Foxy
+WORKDIR /root/bridge_ws/src
+RUN git clone https://github.com/ros2/ros1_bridge.git -b foxy
+
+WORKDIR /root/bridge_ws
+
+# Build the bridge
+RUN /bin/bash -c "source /opt/ros/noetic/setup.bash \
+    && source /opt/ros/foxy/setup.bash \
+    && colcon build --symlink-install --packages-select ros1_bridge --cmake-force-configure"
+
+# Setup entrypoint
+RUN echo '#!/bin/bash\nset -e\nsource /opt/ros/noetic/setup.bash\nsource /opt/ros/foxy/setup.bash\nsource /root/bridge_ws/install/setup.bash\nexec "$@"' > /ros_entrypoint.sh \
+    && chmod +x /ros_entrypoint.sh
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
