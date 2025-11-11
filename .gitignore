@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Docker
+*.log
+
+# ROS
+*.bag
+*.bag.active
+log/
+logs/
+build/
+devel/
+install/
+*.pyc
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
