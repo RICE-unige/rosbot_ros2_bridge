@@ -1,3 +1,7 @@
+> [!WARNING]
+> **Repository Archived:** This ROSbot bridge targets ROS2 Foxy on NVIDIA Jetson and will no longer be supported.  
+> For ROSbot 2.0 users who need a ROS2 Humble bridge (plus a full Docker dev/sim stack), migrate to [RICE-unige/experimental_robotics](https://github.com/RICE-unige/experimental_robotics). That project has Humble and Jazzy containers, SLAM/navigation tooling, simulators, and a ready-to-run Humble↔ROS1 bridge service you can launch from any laptop on the same network as the robot.
+
 # ROSbot ROS2 Bridge
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
